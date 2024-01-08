@@ -110,9 +110,7 @@ def search_places_by_id():
             not cities and
             not amenities):
         places = storage.all(Place).values()
-        list_places = []
-        for place in places:
-            list_places.append(place.to_dict())
+        list_places = [place.to_dict() for place in places]
         return jsonify(list_places)
 
     list_places = []
