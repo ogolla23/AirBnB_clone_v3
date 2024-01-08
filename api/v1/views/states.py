@@ -44,15 +44,14 @@ def del_method(state_id):
 @swag_from('documentation/state/post.yml', methods=['POST'])
 def create_obj():
     """ create new instance """
-    json_data = request.get_json()
-    if not json_data:
+    if not request.get_json():
         return make_response(jsonify({"error": "Not a JSON"}), 400)
-    if 'name' not in json_data:
+    if 'name' not in request.get_json():
         return make_response(jsonify({"error": "Missing name"}), 400)
-    obj = State(**json_data)
+    js = request.get_json()
+    obj = State(**js)
     obj.save()
     return jsonify(obj.to_dict()), 201
-
 
 @app_views.route('/states/<string:state_id>', methods=['PUT'],
                  strict_slashes=False)
