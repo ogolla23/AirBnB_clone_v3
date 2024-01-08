@@ -52,6 +52,8 @@ def create_obj():
     obj = State(**js)
     obj.save()
     return jsonify(obj.to_dict()), 201
+
+
 @app_views.route('/states/<string:state_id>', methods=['PUT'],
                  strict_slashes=False)
 @swag_from('documentation/state/put.yml', methods=['PUT'])
