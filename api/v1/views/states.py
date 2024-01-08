@@ -44,12 +44,12 @@ def del_method(state_id):
 @swag_from('documentation/state/post.yml', methods=['POST'])
 def create_obj():
     """ create new instance """
-    if not request.get_json():
+    json_data = request.get_json()
+    if not json_data:
         return make_response(jsonify({"error": "Not a JSON"}), 400)
-    if 'name' not in request.get_json():
+    if 'name' not in json_data:
         return make_response(jsonify({"error": "Missing name"}), 400)
-    js = request.get_json()
-    obj = State(**js)
+    obj = State(**json_data)
     obj.save()
     return jsonify(obj.to_dict()), 201
 
@@ -59,13 +59,18 @@ def create_obj():
 @swag_from('documentation/state/put.yml', methods=['PUT'])
 def post_method(state_id):
     """ post method """
-    if not request.get_json():
+    json_data = request.get_json()
+    if not json_data:
         return make_response(jsonify({"error": "Not a JSON"}), 400)
+
     obj = storage.get(State, state_id)
     if obj is None:
         abort(404)
-    for key, value in request.get_json().items():
+
+    for key, value in json_data.items():
         if key not in ['id', 'created_at', 'updated']:
             setattr(obj, key, value)
+
     storage.save()
     return jsonify(obj.to_dict())
+
