@@ -50,37 +50,25 @@ def del_review(review_id):
 @app_views.route('/places/<string:place_id>/reviews', methods=['POST'],
                  strict_slashes=False)
 @swag_from('documentation/reviews/post.yml', methods=['POST'])
-def validate_request(request):
-    """Validate the request data"""
-    data = request.get_json()
-    if not data:
-        raise ValueError("Not a JSON")
-    for field in ['user_id', 'text']:
-        if field not in data:
-            raise ValueError(f"Missing {field}")
-    return data
-
 def create_obj_review(place_id):
-    """Create new instance"""
-    try:
-        place = storage.get(Place, place_id)
-        if place is None:
-            abort(404)
-
-        data = validate_request(request)
-
-        user = storage.get(User, data['user_id'])
-        if user is None:
-            abort(404)
-
-        data['place_id'] = place_id
-        review = Review(**data)
-        review.save()
-
-        return jsonify(review.to_dict()), 201
-
-    except ValueError as e:
-        return make_response(jsonify({"error": str(e)}), 400)
+    """ create new instance """
+    place = storage.get(Place, place_id)
+    if place is None:
+        abort(404)
+    if not request.get_json():
+        return make_response(jsonify({"error": "Not a JSON"}), 400)
+    if 'user_id' not in request.get_json():
+        return make_response(jsonify({"error": "Missing user_id"}), 400)
+    if 'text' not in request.get_json():
+        return make_response(jsonify({"error": "Missing text"}), 400)
+    kwargs = request.get_json()
+    kwargs['place_id'] = place_id
+    user = storage.get(User, kwargs['user_id'])
+    if user is None:
+        abort(404)
+    obj = Review(**kwargs)
+    obj.save()
+    return (jsonify(obj.to_dict()), 201)
 
 
 @app_views.route('/reviews/<string:review_id>', methods=['PUT'],
@@ -93,7 +81,13 @@ def post_review(review_id):
     obj = storage.get(Review, review_id)
     if obj is None:
         abort(404)
-    for key, value in request.get_json().items():
+    update_data = dict(request.get_json().items())
+    update_data.pop('id', None)
+    update_data.pop('user_id', None)
+    update_data.pop('place_id', None)
+    update_data.pop('created_at', None)
+    update_data.pop('updated', None)
+    for key, value in update_data.items():
         if key not in ['id', 'user_id', 'place_id', 'created_at', 'updated']:
             setattr(obj, key, value)
     storage.save()
