@@ -62,15 +62,12 @@ def post_method(state_id):
     json_data = request.get_json()
     if not json_data:
         return make_response(jsonify({"error": "Not a JSON"}), 400)
-
     obj = storage.get(State, state_id)
     if obj is None:
         abort(404)
-
     for key, value in json_data.items():
         if key not in ['id', 'created_at', 'updated']:
             setattr(obj, key, value)
-
     storage.save()
     return jsonify(obj.to_dict())
 
